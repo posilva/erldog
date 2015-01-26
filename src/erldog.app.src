@@ -1,0 +1,19 @@
+{application, erldog, [
+  {description, ""},
+  {vsn, "1"},
+  {registered, []},
+  {modules, [
+    erldog_app,
+    erldog_sup,
+    erldog_server
+  ]},
+  {applications, [
+    kernel,
+    stdlib,
+    lager
+  ]},
+  {mod, {
+    erldog_app, []
+  }},
+  {env, []}
+]}.
