@@ -59,11 +59,11 @@ init([]) ->
     Restart = permanent,
     Shutdown = 2000,
     Type = worker,
+	DataStore = 'erldog_ets_store',
+    DataStoreChild = {DataStore, {DataStore, start_link, []},
+              Restart, Shutdown, Type, [DataStore]},
 
-    AChild = {'AName', {'AModule', start_link, []},
-              Restart, Shutdown, Type, ['AModule']},
-
-    {ok, {SupFlags, [AChild]}}.
+    {ok, {SupFlags, [DataStoreChild]}}.
 
 %%%===================================================================
 %%% Internal functions

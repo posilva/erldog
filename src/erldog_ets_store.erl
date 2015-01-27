@@ -8,9 +8,9 @@
 %%%-------------------------------------------------------------------
 -module(erldog_ets_store).
 
-
 -behaviour(gen_server).
 -behaviour(erldog_store).
+
 %% API
 -export([start_link/0]).
 
@@ -21,16 +21,21 @@
 
 %% erldog_store callbacks
 
--export([init_store/1, store/1]).
+-export([init_store/1, store/1, register_metric/2]).
 
 -define(SERVER, ?MODULE).
+-define(ETS_TID, atom_to_list(?MODULE)).
+-define(NAME(N), list_to_atom(?ETS_TID ++ "_" ++ atom_to_list(N))).
 
--record(state, {}).
+-record(store_state, {
+		stats_table :: ets:tid()
+		}).
 
 %%%===================================================================
 %%% API
 %%%===================================================================
-
+register_metric(Metric, Type) ->
+	gen_server:call(?MODULE, {register, Metric, Type}, infinity).
 %%--------------------------------------------------------------------
 %% @doc
 %% Starts the server
@@ -57,7 +62,12 @@ start_link() ->
 %% @end
 %%--------------------------------------------------------------------
 init([]) ->
-    {ok, #state{}}.
+	StatsTableName = ?NAME(erldogstats),
+	StatsTableName = ets:new(StatsTableName, [
+				        named_table, {read_concurrency, true}, public, {write_concurrency, true}
+				      ]),
+	lager:info("Init ETS Table with ID: ~p", [StatsTableName]),    
+	{ok, #store_state{stats_table=StatsTableName}}.
 
 %%--------------------------------------------------------------------
 %% @private
@@ -73,6 +83,13 @@ init([]) ->
 %%                                   {stop, Reason, State}
 %% @end
 %%--------------------------------------------------------------------
+handle_call({register, Metric, Type}, _From, State) ->
+	lager:info("Insert Metric ~p in the Table ~p ",[Metric, State#store_state.stats_table]),	
+	ets:insert(State#store_state.stats_table, {list_to_atom(Metric), Type, 0 }),
+	Reply = ok,
+	{reply, Reply, State};
+
+
 handle_call(_Request, _From, State) ->
     Reply = ok,
     {reply, Reply, State}.
@@ -136,7 +153,8 @@ code_change(_OldVsn, State, _Extra) ->
 %% @end
 %%--------------------------------------------------------------------
 init_store(_ArgsList) ->
-    ok.
+
+	ok.
 
 %%--------------------------------------------------------------------
 %% @private
@@ -146,7 +164,8 @@ init_store(_ArgsList) ->
 %% @end
 %%--------------------------------------------------------------------
 store({_Metric,_Type, _Value})->
-    ok.    
+
+ok.    
 
 %%%===================================================================
 %%% Internal functions

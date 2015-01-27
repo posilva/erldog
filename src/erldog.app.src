@@ -10,10 +10,15 @@
   {applications, [
     kernel,
     stdlib,
-    lager
+    lager,
+    pooler              
   ]},
   {mod, {
     erldog_app, []
   }},
-  {env, []}
+  {env, [
+         {dd_host,"app.datadoghq.com"},
+         {dd_scheme,"https"},
+         {dd_path,"api"}
+]}
 ]}.

@@ -1,45 +1,27 @@
+PROJECT	= erldog
 
-REBAR = rebar
-APP = erldog
 
-default: compile
+DEPS = lager pooler sync shotgun
+dep_lager = git https://github.com/basho/lager.git 2.1.0
+dep_pooler = git https://github.com/seth/pooler.git 1.3.3
+dep_shotgun = git https://github.com/inaka/shotgun.git 0.1.6
 
-all: deps compile sync
 
-compile:
-	$(REBAR) compile
+#dep_gun = git https://github.com/extend/gun.git master
+dep_sync = git https://github.com/rustyio/sync.git master
 
-deps:
-	$(REBAR) get-deps
+include erlang.mk
 
-clean:
-	$(REBAR) clean
+ERLC_OPTS += +'{parse_transform, lager_transform}' +warn_missing_spec
+TEST_ERLC_OPTS += +'{parse_transform, lager_transform}'
 
-generate:
-	$(REBAR) generate
-	chmod u+x rel/$(APP)/bin/$(APP)
+RUN := erl -pa ebin -pa deps/*/ebin -smp enable -s sync -boot start_sasl ${ERL_ARGS}
+NODE ?= ${PROJECT}
 
-sync:
-	cd dev/sync && make && cd -
+shell: app
+		if [ -n "${NODE}" ]; then ${RUN} -name ${NODE}@`hostname` -s ${PROJECT} -s sync -config rel/sys.config; \
+				else ${RUN} -s ${PROJECT} -config rel/sys.config; \
+					fi
 
-distclean: clean 
-	$(REBAR) delete-deps
-
-console:
-	rel/$(APP)/bin/$(APP) console -pa ../../ebin
-
-rebuild:
-	$(REBAR) clean compile generate
-	chmod u+x rel/$(APP)/bin/$(APP)
-
-eunit:
-	$(REBAR) skip_deps=true eunit
-
-docs: deps
-	$(REBAR) skip_deps=true doc
-
-dialyzer: compile
-	@dialyzer -Wno_return -c ebin
-
-.PHONY: deps
-
+erldocs: all
+		erldocs . -o docs

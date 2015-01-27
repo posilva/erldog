@@ -17,9 +17,13 @@
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2,
          terminate/2, code_change/3]).
 
+
+-define(DD_API_VERSION,"v1").
 -define(SERVER, ?MODULE).
 
--record(state, {}).
+-record(state, {
+          client :: string()   %% Datadog API endpoint
+         }).
 
 %%%===================================================================
 %%% API
@@ -51,6 +55,13 @@ start_link() ->
 %% @end
 %%--------------------------------------------------------------------
 init([]) ->
+    {ok,DatadogScheme} = application:get_env(dd_scheme),
+    {ok,DatadogHost} = application:get_env(dd_host),
+    {ok,DatadogPath} = application:get_env(dd_path),
+
+    
+    {ok, Conn} = shotgun:open("google.com", 80),
+
     {ok, #state{}}.
 
 %%--------------------------------------------------------------------
