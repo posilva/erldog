@@ -60,10 +60,11 @@ init([]) ->
     Shutdown = 2000,
     Type = worker,
 	DataStore = 'erldog_ets_store',
-    DataStoreChild = {DataStore, {DataStore, start_link, []},
-              Restart, Shutdown, Type, [DataStore]},
+	HttpModule = 'erldog_http',
+    DataStoreChild = {DataStore, {DataStore, start_link, []}, Restart, Shutdown, Type, [DataStore]},
+	HttpChild = {HttpModule, {HttpModule, start_link, []}, Restart, Shutdown, Type, [HttpModule]},
 
-    {ok, {SupFlags, [DataStoreChild]}}.
+    {ok, {SupFlags, [DataStoreChild, HttpChild]}}.
 
 %%%===================================================================
 %%% Internal functions

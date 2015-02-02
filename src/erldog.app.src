@@ -1,6 +1,6 @@
 {application, erldog, [
   {description, ""},
-  {vsn, "1"},
+  {vsn, "0.0.1"},
   {registered, []},
   {modules, [
     erldog_app,
@@ -11,14 +11,16 @@
     kernel,
     stdlib,
     lager,
-    pooler              
+    pooler,
+    shotgun              
   ]},
   {mod, {
     erldog_app, []
   }},
   {env, [
          {dd_host,"app.datadoghq.com"},
-         {dd_scheme,"https"},
+         {dd_scheme,https},
+         {dd_port,80},
          {dd_path,"api"}
 ]}
 ]}.

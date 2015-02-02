@@ -1,7 +1,7 @@
 PROJECT	= erldog
 
 
-DEPS = lager pooler sync shotgun
+DEPS = lager pooler shotgun
 dep_lager = git https://github.com/basho/lager.git 2.1.0
 dep_pooler = git https://github.com/seth/pooler.git 1.3.3
 dep_shotgun = git https://github.com/inaka/shotgun.git 0.1.6
