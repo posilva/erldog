@@ -9,7 +9,7 @@
 -module(erldog_ets_store).
 
 -behaviour(gen_server).
--behaviour(erldog_store).
+-behaviour(erldog_a_store).
 
 %% API
 -export([start_link/0]).

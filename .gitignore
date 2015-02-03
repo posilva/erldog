@@ -6,3 +6,6 @@ rel/*
 .rebar/*
 ebin/*
 dev/*
+.erlang.mk.packages.v2
+_rel/*
+*.dump

@@ -6,7 +6,7 @@
 %%% @end
 %%% Created : 25 Jan 2015 by Pedro Marques da Silva <pedro.silva@I.lan>
 %%%-------------------------------------------------------------------
--module(erldog_store).
+-module(erldog_a_store).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% TODO: this must go to a header 
 %%%%%%%%%

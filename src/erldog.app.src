@@ -12,15 +12,16 @@
     stdlib,
     lager,
     pooler,
-    shotgun              
+	jsx,
+    lhttpc              
   ]},
   {mod, {
     erldog_app, []
   }},
   {env, [
          {dd_host,"app.datadoghq.com"},
-         {dd_scheme,https},
-         {dd_port,80},
-         {dd_path,"api"}
+         {dd_scheme,"https"},
+         {dd_port,443},
+         {dd_path,"/api/v1/"}
 ]}
 ]}.
