@@ -28,14 +28,14 @@
 -define(NAME(N), list_to_atom(?ETS_TID ++ "_" ++ atom_to_list(N))).
 
 -record(store_state, {
-		stats_table :: ets:tid()
-		}).
+        stats_table :: ets:tid()
+        }).
 
 %%%===================================================================
 %%% API
 %%%===================================================================
 register_metric(Metric, Type) ->
-	gen_server:call(?MODULE, {register, Metric, Type}, infinity).
+    gen_server:call(?MODULE, {register, Metric, Type}, infinity).
 %%--------------------------------------------------------------------
 %% @doc
 %% Starts the server
@@ -62,12 +62,12 @@ start_link() ->
 %% @end
 %%--------------------------------------------------------------------
 init([]) ->
-	StatsTableName = ?NAME(erldogstats),
-	StatsTableName = ets:new(StatsTableName, [
-				        named_table, {read_concurrency, true}, public, {write_concurrency, true}
-				      ]),
-	lager:info("Init ETS Table with ID: ~p", [StatsTableName]),    
-	{ok, #store_state{stats_table=StatsTableName}}.
+    StatsTableName = ?NAME(erldogstats),
+    StatsTableName = ets:new(StatsTableName, [
+                        named_table, {read_concurrency, true}, public, {write_concurrency, true}
+                      ]),
+    lager:info("Init ETS Table with ID: ~p", [StatsTableName]),    
+    {ok, #store_state{stats_table=StatsTableName}}.
 
 %%--------------------------------------------------------------------
 %% @private
@@ -84,10 +84,10 @@ init([]) ->
 %% @end
 %%--------------------------------------------------------------------
 handle_call({register, Metric, Type}, _From, State) ->
-	lager:info("Insert Metric ~p in the Table ~p ",[Metric, State#store_state.stats_table]),	
-	ets:insert(State#store_state.stats_table, {list_to_atom(Metric), Type, 0 }),
-	Reply = ok,
-	{reply, Reply, State};
+    lager:info("Insert Metric ~p in the Table ~p ",[Metric, State#store_state.stats_table]),    
+    ets:insert(State#store_state.stats_table, {list_to_atom(Metric), Type, 0 }),
+    Reply = ok,
+    {reply, Reply, State};
 
 
 handle_call(_Request, _From, State) ->
@@ -154,7 +154,7 @@ code_change(_OldVsn, State, _Extra) ->
 %%--------------------------------------------------------------------
 init_store(_ArgsList) ->
 
-	ok.
+    ok.
 
 %%--------------------------------------------------------------------
 %% @private

@@ -11,27 +11,27 @@
 
 %% API
 -export([start_link/0]).
+
 -export([validate/1]).
 
 %% gen_server callbacks
 -export([
-			init/1, 
-			handle_call/3, 
-			handle_cast/2, 
-			handle_info/2,
-         	terminate/2, 
-			code_change/3
-		]).
--define(DD_API_VERSION,"v1").
+            init/1, 
+            handle_call/3, 
+            handle_cast/2, 
+            handle_info/2,
+            terminate/2, 
+            code_change/3
+        ]).
 
 -define(SERVER, ?MODULE).
 
 -record(http_state, {
-	       		dd_scheme ,
-				dd_host,
-				dd_port,
-				dd_path
-	         }).
+          dd_scheme = "https"             :: string(),
+          dd_host   = "app.datadoghq.com" :: string(),
+          dd_port   = 443                 :: non_neg_integer(),
+          dd_path   = "/api/vi/"          :: string()
+}).
 
 %%%===================================================================
 %%% API
@@ -45,8 +45,8 @@
 %%--------------------------------------------------------------------
 -spec start_link() -> {ok, _Pid} | ignore | {error, _Error}.
 start_link()->
-	gen_server:start_link({local, ?SERVER}, ?MODULE, [], [])
-	.
+    gen_server:start_link({local, ?SERVER}, ?MODULE, [], [])
+    .
 %%--------------------------------------------------------------------
 %% @doc
 %% validates the API Key
@@ -57,8 +57,7 @@ start_link()->
 
 -spec validate(_APIKey) ->{ok, _Pid} | ignore | {error, _Error}.
 validate(APIKey) ->
-	gen_server:call(?MODULE, {validate,APIKey}, 5000)
-	.
+    gen_server:call(?MODULE, {validate,APIKey}, 5000).
 
 
 %%%===================================================================
@@ -79,17 +78,17 @@ validate(APIKey) ->
 init([]) ->
     {ok,DatadogScheme} = application:get_env(dd_scheme),
     {ok,DatadogHost} = application:get_env(dd_host),
-	{ok,DatadogPort} = application:get_env(dd_port),
+    {ok,DatadogPort} = application:get_env(dd_port),
     {ok,DatadogPath} = application:get_env(dd_path),
-	State = #http_state{
-				dd_scheme=DatadogScheme,
-				dd_host=DatadogHost,
-				dd_port=DatadogPort,
-				dd_path=DatadogPath
-				},
+    State = #http_state{
+                dd_scheme=DatadogScheme,
+                dd_host=DatadogHost,
+                dd_port=DatadogPort,
+                dd_path=DatadogPath
+                },
 
-	lager:info("Parameters: ~p, ~p , ~p, ~p",[DatadogScheme,DatadogHost,DatadogPort,DatadogPath]),
-	{ok, State}.
+    lager:info("Parameters: ~p, ~p , ~p, ~p",[DatadogScheme,DatadogHost,DatadogPort,DatadogPath]),
+    {ok, State}.
 
 %%--------------------------------------------------------------------
 %% @private
@@ -105,18 +104,18 @@ init([]) ->
 %%                                   {stop, Reason, State}
 %% @end
 %%--------------------------------------------------------------------
-handle_call({validate, APIKey}, _From, State) ->	
+handle_call({validate, APIKey}, _From, State) ->    
 
-	URL = base_url(State),
-	ServiceUrl = URL ++ "validate?api_key="++APIKey,
-	lager:info("Validate  APIKey URL: ~p",[ServiceUrl]),
-	Reply = case lhttpc:request(ServiceUrl , get, [], 1000) of
-		{ok, {{200, _}, _, Body}} ->
-			Response = jsx:decode(Body),
-			{ok,Response};
-		{ _,Other} ->
-			{error,Other}
-	end,
+    URL = base_url(State),
+    ServiceUrl = URL ++ "validate?api_key="++APIKey,
+    lager:info("Validate  APIKey URL: ~p",[ServiceUrl]),
+    Reply = case lhttpc:request(ServiceUrl , get, [], 1000) of
+        {ok, {{200, _}, _, Body}} ->
+            Response = jsx:decode(Body),
+            {ok,Response};
+        { _,Other} ->
+            {error,Other}
+    end,
 
     {reply, Reply, State};
 
@@ -179,9 +178,9 @@ code_change(_OldVsn, State, _Extra) ->
 %%% Internal functions
 %%%===================================================================
 base_url(HttpState) when is_record(HttpState,http_state) ->
-	URL = HttpState#http_state.dd_scheme ++"://" ++ 
-			HttpState#http_state.dd_host  ++ ":" ++ 
-			integer_to_list(HttpState#http_state.dd_port) ++ 
-			HttpState#http_state.dd_path,
-	URL.
-	
+    URL = HttpState#http_state.dd_scheme ++"://" ++ 
+            HttpState#http_state.dd_host  ++ ":" ++ 
+            integer_to_list(HttpState#http_state.dd_port) ++ 
+            HttpState#http_state.dd_path,
+    URL.
+    
