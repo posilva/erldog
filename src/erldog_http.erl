@@ -8,7 +8,8 @@
 %%%-------------------------------------------------------------------
 -module(erldog_http).
 -behaviour(gen_server).
--include("include/erldog.hrl").
+-include("erldog_types.hrl").
+
 %% API
 -export([start_link/0]).
 
@@ -75,10 +76,10 @@ validate(APIKey) ->
 %%--------------------------------------------------------------------
 
 gauge(Metric, Value, Host, Tags) ->
-    metrics(Metric, [[erldog:unix_timestamp(), Value ]], Host, Tags,  "gauge").
+    metrics(Metric, [[ erldog_lib:unix_timestamp(), Value ]], Host, Tags,  "gauge").
 
-gauge(Metric, Point, Tags) ->
-    metrics(Metric, [[ erldog:unix_timestamp(), Value ]],, undefined, Tags, "gauge").
+gauge(Metric, Value, Tags) ->
+    metrics(Metric, [[ erldog_lib:unix_timestamp(), Value ]], undefined, Tags, "gauge").
 
 
 
