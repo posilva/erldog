@@ -8,11 +8,15 @@
 %%%-------------------------------------------------------------------
 -module(erldog_http).
 -behaviour(gen_server).
-
+-include("include/erldog.hrl").
 %% API
 -export([start_link/0]).
 
--export([validate/1]).
+-export([
+            validate/1,
+            gauge/3,
+            gauge/4
+               ]).
 
 %% gen_server callbacks
 -export([
@@ -51,15 +55,36 @@ start_link()->
 %% @doc
 %% validates the API Key
 %%
-%% @spec validate(_APIKey) ->{ok, _Pid} | ignore | {error, _Error}
+%% @spec validate(_APIKey) ->{ok, _Response} | {error, _Error}
 %% @end
 %%--------------------------------------------------------------------
-
--spec validate(_APIKey) ->{ok, _Pid} | ignore | {error, _Error}.
+ 
+-spec validate(_APIKey) -> {ok, _Response}  | {error, _Error}.
 validate(APIKey) ->
     gen_server:call(?MODULE, {validate,APIKey}, 5000).
 
+%%--------------------------------------------------------------------
+%% @doc
+%% 
+%% The metrics end-point allows you to post metrics data so it can
+%%    be graphed on Datadog's dashboards.
+%%
+%%
+%% @spec metrics(_APIKey) ->{ok, _Response} | {error, _Error}
+%% @end
+%%--------------------------------------------------------------------
 
+gauge(Metric, Value, Host, Tags) ->
+    metrics(Metric, [[erldog:unix_timestamp(), Value ]], Host, Tags,  "gauge").
+
+gauge(Metric, Point, Tags) ->
+    metrics(Metric, [[ erldog:unix_timestamp(), Value ]],, undefined, Tags, "gauge").
+
+
+
+-spec metrics(Metric :: metric_t, Host :: string(), Tags :: list(binary()), MetricType :: metric_type_t, Points :: list({non_neg_integer,number}) ) -> {ok, _Response} | {error, _Error}.
+metrics(Metric, Points, Host, Tags, MetricType) when is_list(Tags) ->
+    gen_server:call(?MODULE, {metrics, Metric, Points, Host, Tags, MetricType, Points}, 5000).
 %%%===================================================================
 %%% gen_server callbacks
 %%%===================================================================
@@ -87,7 +112,7 @@ init([]) ->
                 dd_path=DatadogPath
                 },
 
-    lager:info("Parameters: ~p, ~p , ~p, ~p",[DatadogScheme,DatadogHost,DatadogPort,DatadogPath]),
+   %% lager:info("Parameters: ~p, ~p , ~p, ~p",[DatadogScheme,DatadogHost,DatadogPort,DatadogPath]),
     {ok, State}.
 
 %%--------------------------------------------------------------------
@@ -104,6 +129,32 @@ init([]) ->
 %%                                   {stop, Reason, State}
 %% @end
 %%--------------------------------------------------------------------
+handle_call({metrics, Metric, Points, _Host, Tags, MetricType, Points}, _From, State) ->   
+    {ok,APIKey} = application:get_env(dd_api_key),
+    URL = base_url(State),
+    ServiceUrl = URL ++ "series?api_key="++APIKey,
+
+    Struct = [
+        {<<"series">>, [[
+            {<<"metric">>, list_to_binary(Metric) },
+            {<<"points">>, Points},
+            {<<"type">>, list_to_binary(MetricType)  },
+            {<<"tags">>, Tags}
+        ]]}
+    ],
+     %%{<<"host">>, list_to_binary(Host) },
+    JSON = jsx:encode(Struct),
+
+  %%  lager:info("Method call URL: ~p",[ServiceUrl]),
+    Reply = case lhttpc:request(ServiceUrl , post,[], JSON, 1000) of
+        {ok, {{202, _}, _, Body}} ->
+            Response = jsx:decode(Body),
+            {ok,Response};
+        { _,Other} ->
+            {error,Other}
+    end,
+    {reply, Reply, State};
+
 handle_call({validate, APIKey}, _From, State) ->    
 
     URL = base_url(State),

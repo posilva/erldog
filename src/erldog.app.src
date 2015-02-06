@@ -22,6 +22,7 @@
          {dd_host,"app.datadoghq.com"},
          {dd_scheme,"https"},
          {dd_port,443},
-         {dd_path,"/api/v1/"}
+         {dd_path,"/api/v1/"},
+         {dd_api_key,"4b7b7c97c3a4af0e10bf12a8c4174c0a"}
 ]}
 ]}.
