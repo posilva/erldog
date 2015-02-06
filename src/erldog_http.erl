@@ -134,7 +134,7 @@ handle_call({metrics, Metric, Points, _Host, Tags, MetricType, Points}, _From, S
     {ok,APIKey} = application:get_env(dd_api_key),
     URL = base_url(State),
     ServiceUrl = URL ++ "series?api_key="++APIKey,
-
+    lager:info(" Metrics API URL: ~p",[ServiceUrl]),
     Struct = [
         {<<"series">>, [[
             {<<"metric">>, list_to_binary(Metric) },
