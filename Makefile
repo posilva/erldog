@@ -1,18 +1,13 @@
 PROJECT	= erldog
 
 
-DEPS = lager pooler shotgun
-dep_lager = git https://github.com/basho/lager.git 2.1.0
+DEPS = lager pooler lhttpc jsx
 dep_pooler = git https://github.com/seth/pooler.git 1.3.3
-dep_shotgun = git https://github.com/inaka/shotgun.git 0.1.6
-
-
-#dep_gun = git https://github.com/extend/gun.git master
-dep_sync = git https://github.com/rustyio/sync.git master
-
+dep_lhttpc = git git://github.com/talko/lhttpc
 include erlang.mk
 
-ERLC_OPTS += +'{parse_transform, lager_transform}' +warn_missing_spec
+ERLC_OPTS += +'{parse_transform, lager_transform}' 
+#+warn_missing_spec
 TEST_ERLC_OPTS += +'{parse_transform, lager_transform}'
 
 RUN := erl -pa ebin -pa deps/*/ebin -smp enable -s sync -boot start_sasl ${ERL_ARGS}
