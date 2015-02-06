@@ -9,3 +9,6 @@ dev/*
 .erlang.mk.packages.v2
 _rel/*
 *.dump
+relx
+elvis
+scratch.erl
