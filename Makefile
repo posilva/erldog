@@ -2,8 +2,10 @@ PROJECT	= erldog
 
 
 DEPS = lager pooler lhttpc jsx
-dep_pooler = git https://github.com/seth/pooler.git 1.3.3
-dep_lhttpc = git git://github.com/talko/lhttpc
+dep_lager = git https://github.com/basho/lager.git master
+dep_pooler = git https://github.com/seth/pooler.git master
+dep_lhttpc = git git://github.com/talko/lhttpc master
+dep_jsx = git https://github.com/talentdeficit/jsx.git master
 include erlang.mk
 
 ERLC_OPTS += +'{parse_transform, lager_transform}' 

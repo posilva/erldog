@@ -17,8 +17,9 @@
 
 %% Get unix timestamp 
 unix_timestamp()->
-    {Mega, Secs, _} = now(),
-    Mega*1000000 + Secs.
+%%    {Mega, Secs, _} = now(),
+%%    Mega*1000000 + Secs.
+    os:system_time(seconds).
 
 
 %%--------------------------------------------------------------------

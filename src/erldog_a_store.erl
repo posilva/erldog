@@ -11,7 +11,8 @@
 %% TODO: this must go to a header 
 %%%%%%%%%
 %% generic result
--type gen_result() ::  'ok' | tuple('error', Reason :: string()). 
+%%% -type gen_result() ::  'ok' | tuple('error', Reason :: string()).
+-type gen_result() ::  'ok' | {'error', Reason :: string()}.
 
 %% metrics type specification
 -type metric_name() :: atom() | string() | binary().
