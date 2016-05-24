@@ -17,6 +17,7 @@
 -export([init/1]).
 
 -define(SERVER, ?MODULE).
+-define(CHILD(I, Type), {I, {I, start_link, []}, permanent, 5000, Type, [I]}).
 
 %%%===================================================================
 %%% API functions
@@ -30,7 +31,7 @@
 %% @end
 %%--------------------------------------------------------------------
 start_link() ->
-    supervisor:start_link({local, ?SERVER}, ?MODULE, []).
+  supervisor:start_link({local, ?SERVER}, ?MODULE, []).
 
 %%%===================================================================
 %%% Supervisor callbacks
@@ -50,21 +51,8 @@ start_link() ->
 %% @end
 %%--------------------------------------------------------------------
 init([]) ->
-    RestartStrategy = one_for_one,
-    MaxRestarts = 1000,
-    MaxSecondsBetweenRestarts = 3600,
-
-    SupFlags = {RestartStrategy, MaxRestarts, MaxSecondsBetweenRestarts},
-
-    Restart = permanent,
-    Shutdown = 2000,
-    Type = worker,
-	DataStore = 'erldog_ets_store',
-	HttpModule = 'erldog_http',
-    DataStoreChild = {DataStore, {DataStore, start_link, []}, Restart, Shutdown, Type, [DataStore]},
-	HttpChild = {HttpModule, {HttpModule, start_link, []}, Restart, Shutdown, Type, [HttpModule]},
-
-    {ok, {SupFlags, [DataStoreChild, HttpChild]}}.
+  HttpChild = ?CHILD(erldog_http, worker),
+  {ok, {{one_for_one, 1000, 3600}, [HttpChild]}}.
 
 %%%===================================================================
 %%% Internal functions
