@@ -30,12 +30,10 @@
 ]).
 
 -define(SERVER, ?MODULE).
+-define(URL(S, H, P, Pa), S ++ "://" ++ H ++ ":" ++ integer_to_list(P) ++ Pa).
 
 -record(http_state, {
-  dd_scheme = "https" :: string(),
-  dd_host = "app.datadoghq.com" :: string(),
-  dd_port = 443 :: non_neg_integer(),
-  dd_path = "/api/vi/" :: string()
+  url :: string()
 }).
 
 %%%===================================================================
@@ -82,7 +80,8 @@ gauge(Metric, Value, Tags) ->
 
 
 
--spec metrics(Metric :: metric_t, Host :: string(), Tags :: list(binary()), MetricType :: metric_type_t, Points :: list({non_neg_integer, number})) -> {ok, _Response} | {error, _Error}.
+-spec metrics(Metric :: metric_t, Host :: string(), Tags :: list(binary()), MetricType :: metric_type_t,
+    Points :: list({non_neg_integer, number})) -> {ok, _Response} | {error, _Error}.
 metrics(Metric, Points, Host, Tags, MetricType) when is_list(Tags) ->
   gen_server:call(?MODULE, {metrics, Metric, Points, Host, Tags, MetricType, Points}, 5000).
 %%%===================================================================
@@ -101,19 +100,11 @@ metrics(Metric, Points, Host, Tags, MetricType) when is_list(Tags) ->
 %% @end
 %%--------------------------------------------------------------------
 init([]) ->
-  {ok, DatadogScheme} = application:get_env(dd_scheme),
-  {ok, DatadogHost} = application:get_env(dd_host),
-  {ok, DatadogPort} = application:get_env(dd_port),
-  {ok, DatadogPath} = application:get_env(dd_path),
-  State = #http_state{
-    dd_scheme = DatadogScheme,
-    dd_host = DatadogHost,
-    dd_port = DatadogPort,
-    dd_path = DatadogPath
-  },
-
-  %% lager:info("Parameters: ~p, ~p , ~p, ~p",[DatadogScheme,DatadogHost,DatadogPort,DatadogPath]),
-  {ok, State}.
+  {ok, Scheme} = application:get_env(dd_scheme),
+  {ok, Host} = application:get_env(dd_host),
+  {ok, Port} = application:get_env(dd_port),
+  {ok, Path} = application:get_env(dd_path),
+  {ok, #http_state{url = ?URL(Scheme, Host, Port, Path)}}.
 
 %%--------------------------------------------------------------------
 %% @private
@@ -129,9 +120,8 @@ init([]) ->
 %%                                   {stop, Reason, State}
 %% @end
 %%--------------------------------------------------------------------
-handle_call({metrics, Metric, Points, _Host, Tags, MetricType, Points}, _From, State) ->
+handle_call({metrics, Metric, Points, _Host, Tags, MetricType, Points}, _, State = #http_state{url = URL}) ->
   {ok, APIKey} = application:get_env(dd_api_key),
-  URL = base_url(State),
   ServiceUrl = URL ++ "series?api_key=" ++ APIKey,
   lager:info(" Metrics API URL: ~p", [ServiceUrl]),
   Struct = [
@@ -155,9 +145,7 @@ handle_call({metrics, Metric, Points, _Host, Tags, MetricType, Points}, _From, S
           end,
   {reply, Reply, State};
 
-handle_call({validate, APIKey}, _From, State) ->
-
-  URL = base_url(State),
+handle_call({validate, APIKey}, _, State = #http_state{url = URL}) ->
   ServiceUrl = URL ++ "validate?api_key=" ++ APIKey,
   lager:info("Validate  APIKey URL: ~p", [ServiceUrl]),
   Reply = case lhttpc:request(ServiceUrl, get, [], 1000) of
@@ -228,10 +216,3 @@ code_change(_OldVsn, State, _Extra) ->
 %%%===================================================================
 %%% Internal functions
 %%%===================================================================
-base_url(HttpState) when is_record(HttpState, http_state) ->
-  URL = HttpState#http_state.dd_scheme ++ "://" ++
-    HttpState#http_state.dd_host ++ ":" ++
-    integer_to_list(HttpState#http_state.dd_port) ++
-    HttpState#http_state.dd_path,
-  URL.
-    
