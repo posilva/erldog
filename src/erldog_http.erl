@@ -12,7 +12,7 @@
 %% API
 -export([start_link/0]).
 
--export([validate/1, metrics/1]).
+-export([validate/1, metrics/1, events/1]).
 
 %% gen_server callbacks
 -export([
@@ -72,6 +72,18 @@ metrics(Metrics) when is_list(Metrics) ->
 metrics(Metric) ->
   metrics([Metric]).
 
+
+%%--------------------------------------------------------------------
+%% @doc
+%% The events service allows you to programatically post events to the
+%% stream and fetch events from the stream.
+%% @end
+%%--------------------------------------------------------------------
+-spec events(map()) -> {ok, _Response} | {error, _Error}.
+events(Event) ->
+  gen_server:call(?MODULE, {event, Event}).
+
+
 %%%===================================================================
 %%% gen_server callbacks
 %%%===================================================================
@@ -113,15 +125,19 @@ handle_call({metrics, Metrics}, _, State = #http_state{url = URL}) ->
   ServiceUrl = URL ++ "series?api_key=" ++ APIKey,
   Struct = #{<<"series">> => Metrics},
   JSON = jsx:encode(Struct),
+  Reply = reply(lhttpc:request(ServiceUrl, post, [], JSON, 1000)),
+  {reply, Reply, State};
+handle_call({event, Event}, _, State = #http_state{url = URL}) ->
+  {ok, APIKey} = application:get_env(dd_api_key),
+  ServiceUrl = URL ++ "events?api_key=" ++ APIKey,
+  JSON = jsx:encode(Event),
   lager:info("send ~p ~p", [ServiceUrl, JSON]),
   Reply = reply(lhttpc:request(ServiceUrl, post, [], JSON, 1000)),
   {reply, Reply, State};
-
 handle_call({validate, APIKey}, _, State = #http_state{url = URL}) ->
   ServiceUrl = URL ++ "validate?api_key=" ++ APIKey,
   Reply = reply(lhttpc:request(ServiceUrl, get, [], 1000)),
   {reply, Reply, State};
-
 handle_call(_Request, _From, State) ->
   Reply = ok,
   {reply, Reply, State}.

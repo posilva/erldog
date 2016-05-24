@@ -25,3 +25,16 @@
 -define(COUNTER, <<"counter">>).
 -define(HISTOGRAM, <<"histogram">>).
 -define(SET, <<"set">>).
+
+-record(dd_event,
+{
+  title :: binary(),
+  text :: binary(),
+  date_happened = erldog_lib:unix_timestamp() :: integer(),
+  priority = <<"normal">> :: binary(),
+  host :: binary(),
+  tags :: list(),
+  alert_type = <<"info">> :: binary(),
+  aggregation_key,
+  source_type_name
+}).

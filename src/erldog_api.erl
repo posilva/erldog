@@ -12,7 +12,7 @@
 -include("erldog_types.hrl").
 
 %% API
--export([create_points/1, send_metric/1, create_metrics/5]).
+-export([create_points/1, send_metric/1, create_metrics/5, send_event/1]).
 -export([create_counter/2, create_counter/3, create_counter/4]).
 -export([create_gauge/2, create_gauge/3, create_gauge/4]).
 -export([create_histogram/2, create_histogram/3, create_histogram/4]).
@@ -92,6 +92,18 @@ create_points(Value) ->
 send_metric(Metrics) ->
   erldog_http:metrics(Metrics).
 
+send_event(#dd_event{title = Title, text = Text, date_happened = Date, priority = Priority,
+  host = Host, tags = Tags, alert_type = Alert, aggregation_key = Key, source_type_name = Source}) ->
+  Base = #{<<"title">> => Title, <<"text">> => Text, <<"date_happened">> => Date,
+    <<"priority">> => Priority, <<"alert_type">> => Alert},
+  erldog_http:events(
+    with_host(
+      with_tags(
+        with_aggregation_key(
+          with_source_type_name(Base, Source),
+          Key),
+        Tags),
+      Host)).
 
 %% @private
 with_host(Body, undefined) -> Body;
@@ -100,3 +112,11 @@ with_host(Body, Host) -> Body#{<<"host">> => list_to_binary(Host)}.
 %% @private
 with_tags(Body, []) -> Body;
 with_tags(Body, Tags) -> Body#{<<"tags">> => Tags}.
+
+%% @private
+with_source_type_name(Body, undefined) -> Body;
+with_source_type_name(Body, Tags) -> Body#{<<"source_type_name">> => Tags}.
+
+%% @private
+with_aggregation_key(Body, undefined) -> Body;
+with_aggregation_key(Body, Tags) -> Body#{<<"aggregation_key">> => Tags}.
