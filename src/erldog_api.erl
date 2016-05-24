@@ -72,10 +72,12 @@ create_set(Name, Points, Host, Tags) ->
 
 -spec create_metrics(Name :: metric_t(), Points :: list(list()), Host :: string(), Tags :: list(binary()), Type :: metric_type_t()) ->
   any().
+create_metrics(Name, Points, Host, Tags, Type) when is_list(Name) ->
+  create_metrics(list_to_binary(Name), Points, Host, Tags, Type);
 create_metrics(Name, Points, Host, Tags, Type) ->
   Base = #{
     <<"metric">> => Name,
-    <<"points">> => [Points],
+    <<"points">> => Points,
     <<"type">> => Type
   },
   with_tags(with_host(Base, Host), Tags).

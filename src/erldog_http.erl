@@ -113,6 +113,7 @@ handle_call({metrics, Metrics}, _, State = #http_state{url = URL}) ->
   ServiceUrl = URL ++ "series?api_key=" ++ APIKey,
   Struct = #{<<"series">> => Metrics},
   JSON = jsx:encode(Struct),
+  lager:info("send ~p ~p", [ServiceUrl, JSON]),
   Reply = reply(lhttpc:request(ServiceUrl, post, [], JSON, 1000)),
   {reply, Reply, State};
 
