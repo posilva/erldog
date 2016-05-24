@@ -8,16 +8,11 @@
 %%%-------------------------------------------------------------------
 -module(erldog_http).
 -behaviour(gen_server).
--include("erldog_types.hrl").
 
 %% API
 -export([start_link/0]).
 
--export([
-  validate/1,
-  gauge/3,
-  gauge/4
-]).
+-export([validate/1, metrics/1]).
 
 %% gen_server callbacks
 -export([
@@ -59,7 +54,7 @@ start_link() ->
 
 -spec validate(_APIKey) -> {ok, _Response}  | {error, _Error}.
 validate(APIKey) ->
-  gen_server:call(?MODULE, {validate, APIKey}, 5000).
+  gen_server:call(?MODULE, {validate, APIKey}).
 
 %%--------------------------------------------------------------------
 %% @doc
@@ -71,19 +66,12 @@ validate(APIKey) ->
 %% @spec metrics(_APIKey) ->{ok, _Response} | {error, _Error}
 %% @end
 %%--------------------------------------------------------------------
+-spec metrics(Metric :: list(map()) | map()) -> {ok, _Response} | {error, _Error}.
+metrics(Metrics) when is_list(Metrics) ->
+  gen_server:call(?MODULE, {metrics, Metrics});
+metrics(Metric) ->
+  metrics([Metric]).
 
-gauge(Metric, Value, Host, Tags) ->
-  metrics(Metric, [[erldog_lib:unix_timestamp(), Value]], Host, Tags, "gauge").
-
-gauge(Metric, Value, Tags) ->
-  metrics(Metric, [[erldog_lib:unix_timestamp(), Value]], undefined, Tags, "gauge").
-
-
-
--spec metrics(Metric :: metric_t, Host :: string(), Tags :: list(binary()), MetricType :: metric_type_t,
-    Points :: list({non_neg_integer, number})) -> {ok, _Response} | {error, _Error}.
-metrics(Metric, Points, Host, Tags, MetricType) when is_list(Tags) ->
-  gen_server:call(?MODULE, {metrics, Metric, Points, Host, Tags, MetricType, Points}, 5000).
 %%%===================================================================
 %%% gen_server callbacks
 %%%===================================================================
@@ -120,42 +108,17 @@ init([]) ->
 %%                                   {stop, Reason, State}
 %% @end
 %%--------------------------------------------------------------------
-handle_call({metrics, Metric, Points, _Host, Tags, MetricType, Points}, _, State = #http_state{url = URL}) ->
+handle_call({metrics, Metrics}, _, State = #http_state{url = URL}) ->
   {ok, APIKey} = application:get_env(dd_api_key),
   ServiceUrl = URL ++ "series?api_key=" ++ APIKey,
-  lager:info(" Metrics API URL: ~p", [ServiceUrl]),
-  Struct = [
-    {<<"series">>, [[
-      {<<"metric">>, list_to_binary(Metric)},
-      {<<"points">>, Points},
-      {<<"type">>, list_to_binary(MetricType)},
-      {<<"tags">>, Tags}
-    ]]}
-  ],
-  %%{<<"host">>, list_to_binary(Host) },
+  Struct = #{<<"series">> => Metrics},
   JSON = jsx:encode(Struct),
-
-  %%  lager:info("Method call URL: ~p",[ServiceUrl]),
-  Reply = case lhttpc:request(ServiceUrl, post, [], JSON, 1000) of
-            {ok, {{202, _}, _, Body}} ->
-              Response = jsx:decode(Body),
-              {ok, Response};
-            {_, Other} ->
-              {error, Other}
-          end,
+  Reply = reply(lhttpc:request(ServiceUrl, post, [], JSON, 1000)),
   {reply, Reply, State};
 
 handle_call({validate, APIKey}, _, State = #http_state{url = URL}) ->
   ServiceUrl = URL ++ "validate?api_key=" ++ APIKey,
-  lager:info("Validate  APIKey URL: ~p", [ServiceUrl]),
-  Reply = case lhttpc:request(ServiceUrl, get, [], 1000) of
-            {ok, {{200, _}, _, Body}} ->
-              Response = jsx:decode(Body),
-              {ok, Response};
-            {_, Other} ->
-              {error, Other}
-          end,
-
+  Reply = reply(lhttpc:request(ServiceUrl, get, [], 1000)),
   {reply, Reply, State};
 
 handle_call(_Request, _From, State) ->
@@ -216,3 +179,9 @@ code_change(_OldVsn, State, _Extra) ->
 %%%===================================================================
 %%% Internal functions
 %%%===================================================================
+%% @private
+reply({ok, {{200, _}, _, Body}}) ->
+  Response = jsx:decode(Body),
+  {ok, Response};
+reply({_, Other}) ->
+  {error, Other}.

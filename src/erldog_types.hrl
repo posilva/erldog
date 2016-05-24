@@ -8,14 +8,20 @@
 %%%-------------------------------------------------------------------
 
 %% define some helper types for spec
--type optional(V)       :: V | undefined.
--type proplist(K, V)    :: [{K, V}].
+-type optional(V) :: V | undefined.
+-type proplist(K, V) :: [{K, V}].
 
 %% define some helper types for return types
--type success(V)        :: {ok, V}.
--type success()         :: ok.
--type fail(E)           :: {error, E}.
+-type success(V) :: {ok, V}.
+-type success() :: ok.
+-type fail(E) :: {error, E}.
 
--type metric_t ()       :: string() | binary().
--type metric_type_t()   :: string() | gauge | counter. 
-%%erldog_http:gauge("erldog.test.metric",[[1423182075,123]], "splash001a",[]).
+-type metric_t() :: binary().
+-type metric_type_t() :: binary().
+
+-export_type([metric_t/0, metric_type_t/0]).
+
+-define(GAUGE, <<"gauge">>).
+-define(COUNTER, <<"counter">>).
+-define(HISTOGRAM, <<"histogram">>).
+-define(SET, <<"set">>).
