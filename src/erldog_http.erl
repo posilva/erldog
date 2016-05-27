@@ -131,7 +131,6 @@ handle_call({event, Event}, _, State = #http_state{url = URL}) ->
   {ok, APIKey} = application:get_env(dd_api_key),
   ServiceUrl = URL ++ "events?api_key=" ++ APIKey,
   JSON = jsx:encode(Event),
-  lager:info("send ~p ~p", [ServiceUrl, JSON]),
   Reply = reply(lhttpc:request(ServiceUrl, post, [], JSON, 1000)),
   {reply, Reply, State};
 handle_call({validate, APIKey}, _, State = #http_state{url = URL}) ->
