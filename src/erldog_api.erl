@@ -24,7 +24,7 @@ create_counter(Name, Values) ->
 create_counter(Name, Values, Host) ->
   create_counter(Name, Values, Host, []).
 
--spec create_counter(Name :: metric_t(), Points :: list(list()) | number(), Host :: string(), Tags :: list(binary())) ->
+-spec create_counter(Name :: metric_t(), Points :: list(list()) | number(), Host :: binary(), Tags :: list(binary())) ->
   any().
 create_counter(Name, Value, Host, Tags) when is_number(Value) ->
   create_counter(Name, create_points(Value), Host, Tags);
@@ -37,7 +37,7 @@ create_gauge(Name, Values) ->
 create_gauge(Name, Values, Host) ->
   create_gauge(Name, Values, Host, []).
 
--spec create_gauge(Name :: metric_t(), Points :: list(list()) | number(), Host :: string(), Tags :: list(binary())) ->
+-spec create_gauge(Name :: metric_t(), Points :: list(list()) | number(), Host :: binary(), Tags :: list(binary())) ->
   any().
 create_gauge(Name, Value, Host, Tags) when is_number(Value) ->
   create_gauge(Name, create_points(Value), Host, Tags);
@@ -50,7 +50,7 @@ create_histogram(Name, Values) ->
 create_histogram(Name, Values, Host) ->
   create_histogram(Name, Values, Host, []).
 
--spec create_histogram(Name :: metric_t(), Points :: list(list()) | number(), Host :: string(), Tags :: list(binary())) ->
+-spec create_histogram(Name :: metric_t(), Points :: list(list()) | number(), Host :: binary(), Tags :: list(binary())) ->
   any().
 create_histogram(Name, Value, Host, Tags) when is_number(Value) ->
   create_histogram(Name, create_points(Value), Host, Tags);
@@ -63,14 +63,14 @@ create_set(Name, Values) ->
 create_set(Name, Values, Host) ->
   create_set(Name, Values, Host, []).
 
--spec create_set(Name :: metric_t(), Points :: list(list()) | number(), Host :: string(), Tags :: list(binary())) ->
+-spec create_set(Name :: metric_t(), Points :: list(list()) | number(), Host :: binary(), Tags :: list(binary())) ->
   any().
 create_set(Name, Value, Host, Tags) when is_number(Value) ->
   create_set(Name, create_points(Value), Host, Tags);
 create_set(Name, Points, Host, Tags) ->
   create_metrics(Name, Points, Host, Tags, ?SET).
 
--spec create_metrics(Name :: metric_t(), Points :: list(list()), Host :: string(), Tags :: list(binary()), Type :: metric_type_t()) ->
+-spec create_metrics(Name :: metric_t(), Points :: list(list()), Host :: binary(), Tags :: list(binary()), Type :: metric_type_t()) ->
   any().
 create_metrics(Name, Points, Host, Tags, Type) when is_list(Name) ->
   create_metrics(list_to_binary(Name), Points, Host, Tags, Type);
@@ -107,7 +107,7 @@ send_event(#dd_event{title = Title, text = Text, date_happened = Date, priority 
 
 %% @private
 with_host(Body, undefined) -> Body;
-with_host(Body, Host) -> Body#{<<"host">> => list_to_binary(Host)}.
+with_host(Body, Host) -> Body#{<<"host">> => Host}.
 
 %% @private
 with_tags(Body, []) -> Body;
