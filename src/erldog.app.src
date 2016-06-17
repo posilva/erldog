@@ -10,8 +10,6 @@
   {applications, [
     kernel,
     stdlib,
-    lager,
-    pooler,
     jsx,
     lhttpc
   ]},
