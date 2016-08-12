@@ -11,4 +11,4 @@ _rel/*
 *.dump
 relx
 elvis
-scratch.erl
+.idea

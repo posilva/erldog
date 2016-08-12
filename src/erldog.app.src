@@ -1,6 +1,6 @@
 {application, erldog, [
   {description, ""},
-  {vsn, "0.0.1"},
+  {vsn, "0.0.2"},
   {registered, []},
   {modules, [
     erldog_app,
@@ -10,19 +10,17 @@
   {applications, [
     kernel,
     stdlib,
-    lager,
-    pooler,
-	jsx,
-    lhttpc              
+    jsx,
+    lhttpc
   ]},
   {mod, {
     erldog_app, []
   }},
   {env, [
-         {dd_host,"app.datadoghq.com"},
-         {dd_scheme,"https"},
-         {dd_port,443},
-         {dd_path,"/api/v1/"},
-         {dd_api_key,"4b7b7c97c3a4af0e10bf12a8c4174c0a"}
-]}
+    {dd_host, "app.datadoghq.com"},
+    {dd_scheme, "https"},
+    {dd_port, 443},
+    {dd_path, "/api/v1/"},
+    {dd_api_key, "017ce0332c21b53a0bd0d819881ab967"}
+  ]}
 ]}.
